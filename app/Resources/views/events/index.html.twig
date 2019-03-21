@@ -1,0 +1,350 @@
+{% extends 'base.html.twig' %}
+{% block title %}Run Track{% endblock %}
+{%block user_name%}
+    <button onclick="return false;" style="width:auto;">{{username}}</button>
+    {%if user_roles == "ROLE_PUBLISHER" or user_roles == "ROLE_ADMIN"%}
+        <button onclick="window.location.href = '{{ path('events_creation') }}';" style="width:auto;color: green">Create new Event</button>
+    {% endif %}
+{% endblock %}
+{% block body %}
+    {%if user_roles == "ROLE_PUBLISHER" or user_roles == "ROLE_ADMIN"%}
+        <!-- Boxes -->     
+        <div>
+		<div class="container events_all">
+			{% set begin = 0 %}                        
+                            {% for event in events %}
+                                
+                                {% if begin == 0 %} 
+                                    <div class="row"> 
+                                        <div class="col">
+                                            <div class="boxes_container d-flex flex-lg-row flex-column align-items-start justify-content-start">
+                                {% endif %}
+                                {% set begin = begin+1 %}
+                                                <!-- Box -->
+                                                <div class="box">
+                                                        <div class="box_icon d-flex flex-column align-items-center justify-content-center"><img src="{{asset("img/icon_1.png")}}" alt=""></div>
+                                                        <div class="box_title">{{ event.evName }}</div>
+                                                        <div class="box_text">
+                                                                <p>{{event.evDescription}}</p>
+                                                                <p>{% if event.evPlannedDatetime %}{{ event.evPlannedDatetime|date('Y-m-d H:i:s') }}{% endif %}</p>
+                                                                <ul>
+                                                                    <li>
+                                                                        <a href="{{ path('events_show', { 'id': event.id }) }}">show</a>
+                                                                     </li>
+                                                                    <li>
+                                                                        <a href="{{ path('events_update', { 'id': event.id }) }}">edit</a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="{{ path('events_delete', { 'id': event.id }) }}"  onclick="return ConfirmDeliting(this);">delete</a>
+                                                                    </li>
+                                                                </ul>
+                                                        </div>
+
+                                                </div>
+                                {% if begin == 3%} 
+                                                </div>
+                                            </div>
+                                        </div> 
+                                    <div class="row">
+                                            <div class="col">
+                                            </div>
+                                    </div>
+
+
+                                    {% set begin = 0 %}
+                                
+                                
+                                {% endif %}
+                                
+                                {#if not remainder non equal our constant#}
+                                {%if loop.last == true%}
+                                    {% if begin> 0%}
+                                            </div>
+                                        </div>
+                                    </div> 
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            
+		</div>
+	</div>
+       
+        
+    {%endif%}
+    {%if user_roles == "ROLE_USER"%}
+        <!-- Home -->
+        <div class="home">
+		<div class="background_image" style="background-image:url({{asset('img/sport.png')}})">
+                </div>
+                <div class="home_container">
+                    <div class="container">
+                        <div class="s01">
+                          <form>
+                            <div class="inner-form">
+                                <div class="input-field first-wrap">
+                                  <input id="search" type="text" placeholder="What are you looking for?" />
+                                </div>
+                                <div class="input-field second-wrap">
+                                    <input id="location" type="text" placeholder="location" />
+                                </div>
+                                <div class="input-field third-wrap">
+                                  <button class="btn-search" type="button">Search</button>
+                                </div>
+                            </div>
+                          </form>
+                        </div>
+                        <div class="row">
+                                <div class="col">
+
+
+
+                                </div>
+                        </div>
+                    </div>
+		</div>
+	</div>
+                
+   <!-- Boxes -->     
+        <div>
+		<div class="container events_all">
+			{% set begin = 0 %}                        
+                            {% for event in events %}
+                                
+                                {% if begin == 0 %} 
+                                    <div class="row"> 
+                                        <div class="col">
+                                            <div class="boxes_container d-flex flex-lg-row flex-column align-items-start justify-content-start">
+                                {% endif %}
+                                {% set begin = begin+1 %}
+                                                <!-- Box -->
+                                                <div class="box">
+                                                        <div class="box_icon d-flex flex-column align-items-center justify-content-center"><img src="{{asset("img/icon_1.png")}}" alt=""></div>
+                                                        <div class="box_title">{{ event.evName }}</div>
+                                                        <div class="box_text">
+                                                                <p>{{event.evDescription}}</p>
+                                                                <p>{% if event.evPlannedDatetime %}{{ event.evPlannedDatetime|date('Y-m-d H:i:s') }}{% endif %}</p>
+                                                                <a href="{{ path('events_show', { 'id': event.id }) }}">show</a>
+                                                        </div>
+
+                                                </div>
+                                {% if begin == 3%} 
+                                                </div>
+                                            </div>
+                                        </div> 
+                                    <div class="row">
+                                            <div class="col">
+                                            </div>
+                                    </div>
+
+
+                                    {% set begin = 0 %}
+                                
+                                
+                                {% endif %}
+                                
+                                {#if not remainder non equal our constant#}
+                                {%if loop.last == true%}
+                                    {% if begin> 0%}
+                                            </div>
+                                        </div>
+                                    </div> 
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            
+		</div>
+	</div>
+        
+ {%endif%}
+    
+{% endblock %}
+{% block javascripts %}
+    <script type="text/javascript">
+        function ConfirmDeliting(obj) {
+            conf = confirm("Do you want to delete this event?");
+            return conf;
+            
+        }
+    </script>
+<script>
+  $( function() {
+    var availableTags = [];
+    $( "#search" ).autocomplete({
+    minLength: 0,
+    source: function( request, response ) {
+        $.ajax( {
+          url: "{{ path('events_find_names')}}",
+          //dataType: "jsonp",
+          type: "post",
+          data: "ev_name="+encodeURIComponent(JSON.stringify($("#search").val())),
+          success: function( names_array ) {
+              availableTags = [];
+              availableTags_parsed = JSON.parse(names_array);
+              availableTags_parsed = JSON.parse(names_array);
+                for (var prop in availableTags_parsed) {
+                    for(pr in availableTags_parsed[prop]) {
+                        availableTags.push(availableTags_parsed[prop][pr].evName);
+                    }
+                }
+              response( availableTags);
+              if ($("#search").val() === "") {
+                $.ajax({
+                    data: "ev_name="+encodeURIComponent(JSON.stringify($("#search").val())),
+                    url:"{{ path('events_find_all_names')}}",
+                    //contentType:"application/json;charset=UTF-8",
+                    type: "post",
+                    success: function(names_array){
+                        var results_finding = [];
+                        results_finding = JSON.parse(names_array);
+                        var id = [];
+                        var event_name = [];
+                        var event_planned_datetime = [];
+                        var event_description = [];
+                
+
+                        for (var prop in results_finding) {
+                            for (var prop_1 in results_finding[prop]) {
+                                id.push(results_finding[prop][prop_1].id);
+                                event_name.push(results_finding[prop][prop_1].evName);
+                                let current_datetime = new Date(results_finding[prop][prop_1].evPlannedDatetime.date)
+                                //let formatted_date = current_datetime.getFullYear() + "-" + (current_datetime.getMonth() + 1) + "-" + current_datetime.getDate() + " " + current_datetime.getHours() + ":" + current_datetime.getMinutes() ; 
+                                event_planned_datetime.push(current_datetime.toLocaleString());
+                                event_description.push(results_finding[prop][prop_1].evDescription);
+                
+                            }
+                        }
+                        $(".events_all").empty();
+                begin = 0;
+                length_all = id.length;
+                var events = "";
+                for (i=0;i<id.length;i++) {
+                    if (begin == 0) {
+                        events = ("<div class='row'>\n\
+                                <div class='col'>\n\
+                                    <div class='boxes_container d-flex flex-lg-row flex-column align-items-start justify-content-start'>"
+                                    );
+                        }
+                        begin = begin + 1;
+                        events = events + ("<div class='box'>\n\
+                                                <div class='box_icon d-flex flex-column align-items-center justify-content-center'><img src='{{asset("img/icon_1.png")}}' alt=''></div>\n\
+                                                <div class='box_title'>"+event_name[i]+"</div>\n\
+                                                <div class='box_text'>\n\
+                                                    <p>"+event_description[i]+"</p>\n\
+                                                        <p>"+event_planned_datetime[i]+"</p>\n\
+                                                        <a href='{{ app.request.uri}}"+id[i]+"'>show</a>\n\
+                                                </div>\n\
+                                        </div>");
+
+                        if (begin == 3)  {
+                            events = events + ("</div>\n\
+                                    </div>\n\
+                                </div>\n\
+                            <div class='row'>\n\
+                                    <div class='col'>\n\
+                                    </div>\n\
+                            </div>");
+                            begin = 0;
+                            $(".events_all").append(events);
+                            events = "";//save memory
+
+                        }
+                        {#if not remainder non equal our constant#}
+                        if (i == length_all -1) {
+                            if (begin > 0) {
+                                events = events + ("           </div>\n\
+                                                    </div>\n\
+                                                </div>");
+                            }
+                        }
+                    }
+                    $(".events_all").append(events);
+                    events = null;
+                        //confirm filtering
+                    }
+                 });
+              }
+          }
+          
+        } );
+      },
+        select: function( event, ui ) {
+        $.ajax({
+            data: "ev_name="+encodeURIComponent(JSON.stringify(ui.item.value)),
+            url:"{{ path('events_find_all_names')}}",
+            //contentType:"application/json;charset=UTF-8",
+            type: "post",
+            success: function(names_array){
+                var results_finding = [];
+                results_finding = JSON.parse(names_array);
+                var id = [];
+                var event_name = [];
+                var event_planned_datetime = [];
+                var event_description = [];
+                
+                
+                for (var prop in results_finding) {
+                    for (var prop_1 in results_finding[prop]) {
+                        id.push(results_finding[prop][prop_1].id);
+                        event_name.push(results_finding[prop][prop_1].evName);
+                        let current_datetime = new Date(results_finding[prop][prop_1].evPlannedDatetime.date)
+                        //let formatted_date = current_datetime.getFullYear() + "-" + (current_datetime.getMonth() + 1) + "-" + current_datetime.getDate() + " " + current_datetime.getHours() + ":" + current_datetime.getMinutes() ; 
+                        event_planned_datetime.push(current_datetime.toLocaleString());
+                        event_description.push(results_finding[prop][prop_1].evDescription);
+                    }
+                }
+                $(".events_all").empty();
+                begin = 0;
+                length_all = id.length;
+                var events = "";
+                for (i=0;i<id.length;i++) {
+                    if (begin == 0) {
+                        events = ("<div class='row'>\n\
+                                <div class='col'>\n\
+                                    <div class='boxes_container d-flex flex-lg-row flex-column align-items-start justify-content-start'>"
+                                    );
+                        }
+                        begin = begin + 1;
+                        events = events + ("<div class='box'>\n\
+                                                <div class='box_icon d-flex flex-column align-items-center justify-content-center'><img src='{{asset("img/icon_1.png")}}' alt=''></div>\n\
+                                                <div class='box_title'>"+event_name[i]+"</div>\n\
+                                                <div class='box_text'>\n\
+                                                    <p>"+event_description[i]+"</p>\n\
+                                                        <p>"+event_planned_datetime[i]+"</p>\n\
+                                                        <a href='{{ app.request.uri}}"+id[i]+"'>show</a>\n\
+                                                </div>\n\
+                                        </div>");
+
+                        if (begin == 3)  {
+                            events = events + ("</div>\n\
+                                    </div>\n\
+                                </div>\n\
+                            <div class='row'>\n\
+                                    <div class='col'>\n\
+                                    </div>\n\
+                            </div>");
+                            begin = 0;
+                            $(".events_all").append(events);
+                            events = "";//save memory
+
+                        }
+                        {#if not remainder non equal our constant#}
+                        if (i == length_all -1) {
+                            if (begin > 0) {
+                                events = events + ("           </div>\n\
+                                                    </div>\n\
+                                                </div>");
+                            }
+                        }
+                    }
+                 $(".events_all").append(events);
+                 events = null;
+                //confirm filtering
+                
+            }
+         });
+      }
+      });
+        
+     });
+  </script>
+{% endblock %}

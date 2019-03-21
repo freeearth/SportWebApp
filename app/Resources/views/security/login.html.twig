@@ -1,0 +1,71 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Login page{% endblock %}
+
+{% block body %}
+     <div class="home">
+            <div class="background_image" style="background-image:url(images/sport.png)"></div>
+                    <div class="home_container">
+                    <div class="container">
+                        <div class="s01">
+                            <div class="inner-form">
+    {{ form_start(form) }}
+        <span class = "email">{{ form_row(form.email) }}</span>
+        <span class = "password">{{ form_row(form.password) }}</span>
+        {{ form_rest(form) }}
+        {#
+            If you want to control the URL the user
+            is redirected to on success (more details below)
+            <input type="hidden" name="_target_path" value="/account"/>
+        #}
+        <button id="login_btn"  type="button">Sign in</button>
+        
+    {{ form_end(form) }}
+    {{ form_errors(form) }}
+    <br />
+    Also, if are not registered yet, you can:
+    <ul>
+        <li>
+            <a href="{{ path('register') }}">Register</a>
+        </li>
+    </ul>
+    </div>  
+    </div>
+    </div>
+    </div>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#login_btn").on('click',function () {
+                $.ajax( {
+                    url: "{{ path('remote_login')}}",
+                    //dataType: "jsonp",
+                    type: "post",
+                    data: "log="+encodeURIComponent(JSON.stringify($("#form_email").val()))+"&pas="+encodeURIComponent(JSON.stringify($("#form_password").val())),
+                    success: function( result) {
+                        error = [];
+                        error = result.error;
+                        if (error.length == 0) {
+                            window.location.href = {{ path('events_index') }}
+                        }
+                        else {
+                            errors_all = "";
+                            for (val in error) {
+                                errors_all = errors_all + error[val] + "\n";  
+                            }
+                            alert (errors_all);
+                            return false;
+                        }
+                            
+                    }
+                });
+                return false;
+            });
+        });
+    </script>
+{% endblock%}
+
+

@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+{% block title %}Events create/edit page{% endblock %}
+{% block body %}
+    <h1>{{ title_l }}</h1>
+    {{ form_start(form) }}
+        {{ form_row(form.evName) }}
+        <br/>
+        {{ form_row(form.evDescription) }}
+        <br/>
+        {{ form_row(form.evPlannedDatetime) }}
+        <br/>
+        <button type="submit">{{submit_name}}</button>
+    {{ form_end(form) }}
+    {{ form_errors(form) }}
+    <ul>
+        <li>
+            <a href="{{ path('events_index') }}">Back to the list</a>
+        </li>
+    </ul>
+{% endblock %}

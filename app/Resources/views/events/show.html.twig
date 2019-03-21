@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Event</h1>
+    <table>
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ event.id }}</td>
+            </tr>
+            <tr>
+                <th>Evname</th>
+                <td>{{ event.evName }}</td>
+            </tr>
+            <tr>
+                <th>Evdescription</th>
+                <td>{{ event.evDescription }}</td>
+            </tr>
+            <tr>
+                <th>Evcreateddatetime</th>
+                <td>{% if event.evCreatedDatetime %}{{ event.evCreatedDatetime|date('Y-m-d H:i:s') }}{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Evchangeddatetime</th>
+                <td>{% if event.evChangedDatetime %}{{ event.evChangedDatetime|date('Y-m-d H:i:s') }}{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Evplanneddatetime</th>
+                <td>{% if event.evPlannedDatetime %}{{ event.evPlannedDatetime|date('Y-m-d H:i:s') }}{% endif %}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>
+            <a href="{{ path('events_index') }}">Back to the list</a>
+        </li>
+    </ul>
+{% endblock %}
