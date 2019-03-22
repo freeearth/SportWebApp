@@ -18,7 +18,7 @@
             is redirected to on success (more details below)
             <input type="hidden" name="_target_path" value="/account"/>
         #}
-        <button id="login_btn"  type="button">Sign in</button>
+        <button  type="submit">Sign in</button>
         
     {{ form_end(form) }}
     {{ form_errors(form) }}
@@ -35,37 +35,8 @@
     </div>
     </div>
 {% endblock %}
-{% block javascripts %}
+{% block javascripts %}    
     
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $("#login_btn").on('click',function () {
-                $.ajax( {
-                    url: "{{ path('remote_login')}}",
-                    //dataType: "jsonp",
-                    type: "post",
-                    data: "log="+encodeURIComponent(JSON.stringify($("#form_email").val()))+"&pas="+encodeURIComponent(JSON.stringify($("#form_password").val())),
-                    success: function( result) {
-                        error = [];
-                        error = result.error;
-                        if (error.length == 0) {
-                            window.location.href = {{ path('events_index') }}
-                        }
-                        else {
-                            errors_all = "";
-                            for (val in error) {
-                                errors_all = errors_all + error[val] + "\n";  
-                            }
-                            alert (errors_all);
-                            return false;
-                        }
-                            
-                    }
-                });
-                return false;
-            });
-        });
-    </script>
 {% endblock%}
 
 
