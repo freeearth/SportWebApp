@@ -4,6 +4,10 @@ namespace AppBundle\Repository;
 
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\HttpFoundation\Request;
+use AppBundle\Entity\User;
+
 
 /**
  * UserRepository
@@ -13,5 +17,31 @@ use Doctrine\ORM\EntityRepository;
  */
 class UserRepository extends \Doctrine\ORM\EntityRepository
 {
-    
+    /**
+     * Check current user session
+     * @return User object or NULL
+     */ 
+    public function checkSession(Request $request) {
+        $user_old = new User();
+        $user_new= null;
+        $session = $request->getSession();
+        $serialized = $session->get("SessionSportWebAppPID");
+        if (!empty($serialized)) {
+            $user_old = new User();
+            $user_old->unserialize($serialized);
+
+            $user_new = $this->findOneBy(array('id' => $user_old->getId()));
+            if (!empty($user_new)) {
+                $password_old = $user_old->getPassword();
+                $password_new = $user_new->getPassword();
+                if ($password_old == $password_new) {
+                    return $user_new;
+                }
+                else {
+                    $user_new = null;
+                    return null;
+                }
+            }
+        }
+    }
 }

@@ -47,10 +47,14 @@
                                                             <li><a href="services.html">Services</a></li>
                                                             <li><a href="contact.html">Contact</a></li>
                                                     </ul>
-                                                    {% if app.session.get("SessionSportWebAppPID") is not defined %}
+                                                    {% if app.session.get("SessionSportWebAppPID") == "" or app.session.get("SessionSportWebAppPID") is not defined %}
                                                         <button onclick="document.getElementById('id01').style.display='block'" style="width:auto;">Sign Up</button>
                                                     {% endif %}
-                                                    {%block user_name%} {% endblock %}
+                                                    {% if  username is defined%}
+                                                        <button onclick="return false;" style="width:auto;">{{username}}</button>
+                                                    {% endif  %}
+    
+                                                    {%block header_buttons%} {% endblock %}
                                                     
 
                                                 <div id="id01" class="modal">
@@ -128,12 +132,11 @@
                                                     {% if app.session.get("SessionSportWebAppPID") %}
                                                         <button onclick="window.location.href = '{{ path('logout') }}';" style="width:auto;">Logout</button>
                                                     {% else %} 
-
-                                                        <button onclick="document.getElementById('id01').style.display='block'" style="width:auto;">Login</button>
+                                                        <button onclick="document.getElementById('id03').style.display='block'" style="width:auto;">Login</button>
                                                     {% endif %}
 
-                                                    <div id="id01" class="modal">
-                                                      <span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">&times;</span>
+                                                    <div id="id03" class="modal">
+                                                      <span onclick="document.getElementById('id03').style.display='none'" class="close" title="Close Modal">&times;</span>
                                                       <form class="modal-content" action="/action_page.php">
                                                         <div class="container">
                                                           <h1>Login</h1>
@@ -141,10 +144,10 @@
                                                           <hr>
 
                                                           <label for="email"><b>Email</b></label>
-                                                          <input type="text" placeholder="Enter Email" name="email" required>
+                                                          <input id="form_email" type="text" placeholder="Enter Email" name="email" required>
 
                                                           <label for="psw"><b>Password</b></label>
-                                                          <input type="password" placeholder="Enter Password" name="psw" required>
+                                                          <input id="form_password" type="password" placeholder="Enter Password" name="psw" required>
 
 
                                                           <label>
@@ -152,8 +155,8 @@
                                                           </label>
 
                                                           <div class="clearfix">
-                                                            <button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">Cancel</button>
-                                                            <button type="submit" class="signupbtn">Login</button>
+                                                            <button type="button" onclick="document.getElementById('id03').style.display='none'" class="cancelbtn">Cancel</button>
+                                                            <button id = "login_btn_modal" type="submit" class="signupbtn">Login</button>
                                                           </div>
                                                         </div>
                                                       </form>
@@ -281,7 +284,7 @@
       <hr>
 
       <label for="email"><b>Email</b></label>
-      <input type="text" placeholder="Enter Email" name="email" required>
+      <input type="text" placeholder="Enter Email"  name="email" required>
 
       <label for="psw"><b>Password</b></label>
       <input type="password" placeholder="Enter Password" name="psw" required>
@@ -378,6 +381,35 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
         <script type="text/javascript" src={{asset("js/custom.js")}}></script>
         <script type="text/javascript" src={{asset("js/signup.js")}}></script>
         <script type="text/javascript" src={{asset("js/login.js")}}></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+                $("#login_btn_modal").on('click',function () {
+                    $.ajax( {
+                        url: "{{ path('remote_login')}}",
+                        //dataType: "jsonp",
+                        type: "post",
+                        data: "log="+encodeURIComponent(JSON.stringify($("#form_email").val()))+"&pas="+encodeURIComponent(JSON.stringify($("#form_password").val())),
+                        success: function( result) {
+                            error = [];
+                            error = result.error;
+                            if (error.length == 0) {
+                                window.location.href = {{ path('events_index') }}
+                            }
+                            else {
+                                errors_all = "";
+                                for (val in error) {
+                                    errors_all = errors_all + error[val] + "\n";  
+                                }
+                                alert (errors_all);
+                                return false;
+                            }
+
+                        }
+                    });
+                    return false;
+                });
+            });
+        </script>
         {% block javascripts %}
             
         {% endblock %}

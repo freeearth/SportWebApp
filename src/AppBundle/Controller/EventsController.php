@@ -5,6 +5,7 @@ namespace AppBundle\Controller;
 use AppBundle\Entity\Events;
 use AppBundle\Entity\User;
 use AppBundle\Form\EventsType;
+use AppBundle\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 //use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -43,8 +44,12 @@ class EventsController extends Controller
         $session = $request->getSession();
         $serialized = $session->get("SessionSportWebAppPID");
         if (empty($serialized)) {
-            $session->clear();
-            return $this->redirectToRoute('login');
+            return $this->render('events/index.html.twig', array(
+                'user_roles' => 'ROLE_GUEST',
+                'events' => null,
+                'delete_route_path' => null,//hardcode
+                'edit_route_path' => null//hardcode
+            ));
         }
         $user_old = new User();
         $user_old->unserialize($serialized);
@@ -65,7 +70,9 @@ class EventsController extends Controller
             return $this->render('events/index.html.twig', array(
                 'events' => $events,
                 'username' => $user_new->getUsername(),
-                'user_roles' => $user_new->getRoles()
+                'user_roles' => $user_new->getRoles(),
+                'delete_route_path' => "delete",//hardcode
+                'edit_route_path' => "update"//hardcode
             ));
         }
         if ($password_old == $password_new && $user_role== 'ROLE_USER' || $user_role == 'ROLE_ADMIN') {
@@ -74,7 +81,9 @@ class EventsController extends Controller
             return $this->render('events/index.html.twig', array(
                 'events' => $events,
                 'username' => $user_new->getUsername(),
-                'user_roles' => $user_new->getRoles()
+                'user_roles' => $user_new->getRoles(),
+                'delete_route_path' => "delete",//hardcode
+                'edit_route_path' => "update"//hardcode
             ));
         }
         else {
@@ -308,44 +317,66 @@ class EventsController extends Controller
      *
      * @Route("find_by_name/", name="events_find_names", methods={"GET","HEAD", "POST"})
      */
-    public function findNamesByEvNameAction()
-    {
-        if (isset($_POST['ev_name'])) {
-            try {
-                $em = $this->getDoctrine()->getManager();
-                $params_name=json_decode($_POST['ev_name']);
-                $query = $em->createQuery(
-                        "SELECT DISTINCT un.evName
-                        FROM AppBundle:Events un
-                        WHERE un.evName LIKE
-                        :name"
-                )->setParameters(array(
-                                    'name' => "%".trim($params_name)."%"
-                                    ));
-                $result[]=$query->getArrayResult();
-                $resulted_keywords = array();
-                foreach ($result as $k=>$val) {
-                    foreach ($val as $k_0=>$val_0)
-                        if (!empty($val_0)) {
-                        $keyword = explode(" ",trim($val_0["evName"]));
-                        foreach ($keyword as $k_1=>$kw) {
-                            $pos = true;
-                            if (!empty(trim($params_name))) {
-                                $pos  = strpos(strtolower($kw),trim(strtolower($params_name)));
-                            }
-                            if ($pos !== false) {
-                                $resulted_keywords[$k][$k_0]["evName"] = trim($kw);
+    public function findNamesByEvNameAction(Request $request)
+    {   
+        $em = $this->getDoctrine()->getManager();
+        $user = $em->getRepository('AppBundle:User')->checkSession($request);
+        if (!empty($user )) {
+            if (isset($_POST['ev_name'])) {
+                try {
+                    $em = $this->getDoctrine()->getManager();
+                    $params_name=json_decode($_POST['ev_name']);
+                    $roles = $user->getRoles();
+                    if ($roles == 'ROLE_PUBLISHER') {
+                        $query = $em->createQuery(
+                            "SELECT DISTINCT un.evName
+                            FROM AppBundle:Events un
+                            WHERE un.evName LIKE
+                            :name AND un.user_id = :user_id" 
+                        )->setParameters(array(
+                                        'name' => "%".trim($params_name)."%",
+                                        'user_id' => $user->getId()
+                                        ));
+                    }
+                    if ($roles == 'ROLE_ADMIN' || $roles == 'ROLE_USER') {
+                        $query = $em->createQuery(
+                                "SELECT DISTINCT un.evName
+                                FROM AppBundle:Events un
+                                WHERE un.evName LIKE
+                                :name"
+                        )->setParameters(array(
+                                            'name' => "%".trim($params_name)."%"
+                                            ));
+                    }
+                    $result[]=$query->getArrayResult();
+                    $resulted_keywords = array();
+                    $cnt = 0;
+                    foreach ($result as $k=>$val) {
+                        foreach ($val as $k_0=>$val_0) {
+                            if (!empty($val_0)) {
+                                $keyword = explode(" ",trim($val_0["evName"]));
+                                foreach ($keyword as $k_1=>$kw) {
+                                    $pos = true;
+                                    if (!empty(trim($params_name))) {
+                                        $pos  = strpos(strtolower($kw),strtolower($params_name));
+                                    }
+                                    if ($pos !== false | $pos == true) {
+                                        $resulted_keywords[$cnt] = trim($kw);
+                                        $cnt++;
+                                    }
+                                }
                             }
                         }
                     }
+                    //make unique keywords
+                    //var_dump($resulted_keywords);
+                    $resulted_keywords = array_unique($resulted_keywords, SORT_REGULAR);
+                    //var_dump($resulted_keywords);
+                    return new Response(json_encode($resulted_keywords));
                 }
-                //make unique keywords
-                $resulted_keywords = array_unique($resulted_keywords);
-                //var_dump($resulted_keywords);
-                return new Response(json_encode($resulted_keywords));
-            }
-            catch (Exception $e){
-                return new Response(json_encode($e));
+                catch (Exception $e){
+                    return new Response(json_encode($e));
+                }
             }
         }
         return new Response("0");
@@ -356,25 +387,43 @@ class EventsController extends Controller
      *
      * @Route("find_all_by_name/", name="events_find_all_names", methods={"GET","HEAD", "POST"})
      */
-    public function findAllByEvNameAction()
-    {
-        if (isset($_POST['ev_name'])) {
-            try {
-                $em = $this->getDoctrine()->getManager();
-                $params_name=json_decode($_POST['ev_name']);
-                $query = $em->createQuery(
-                        "SELECT un
-                        FROM AppBundle:Events un
-                        WHERE un.evName LIKE
-                        :name"
-                )->setParameters(array(
-                                    'name' => "%".trim($params_name)."%"
-                                    ));
-                $result[]=$query->getArrayResult();
-                return new Response(json_encode($result));
-            }
-            catch (Exception $e){
-                return new Response(json_encode($e));
+    public function findAllByEvNameAction(Request $request)
+    {   
+        $em = $this->getDoctrine()->getManager();
+        $user = $em->getRepository('AppBundle:User')->checkSession($request);
+        if (!empty($user )) {
+            if (isset($_POST['ev_name'])) {
+                try {
+                    $em = $this->getDoctrine()->getManager();
+                    $params_name=json_decode($_POST['ev_name']);
+                    $roles = $user->getRoles();
+                    if ($roles == 'ROLE_PUBLISHER') {
+                        $query = $em->createQuery(
+                            "SELECT un
+                            FROM AppBundle:Events un
+                            WHERE un.evName LIKE
+                            :name AND un.user_id = :user_id" 
+                        )->setParameters(array(
+                                        'name' => "%".trim($params_name)."%",
+                                        'user_id' => trim($user->getId())
+                                        ));
+                    }
+                    if ($roles == 'ROLE_ADMIN' || $roles == 'ROLE_USER') {
+                        $query = $em->createQuery(
+                                "SELECT un
+                                FROM AppBundle:Events un
+                                WHERE un.evName LIKE
+                                :name"
+                        )->setParameters(array(
+                                            'name' => "%".trim($params_name)."%"
+                                            ));
+                    }
+                    $result[]=$query->getArrayResult();
+                    return new Response(json_encode($result));
+                }
+                catch (Exception $e){
+                    return new Response(json_encode($e));
+                }
             }
         }
         return new Response("0");
