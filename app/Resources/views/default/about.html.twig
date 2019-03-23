@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ page_title}}{% endblock %}
+{% block body %}
+<!-- Home -->
+
+	<div class="home">
+		<div class="background_image" style="background-image:url({{ asset('img/field.jpg')}})"></div>
+		<div class="overlay"></div>
+		<div class="home_container">
+			<div class="container">
+				<div class="row">
+					<div class="col">
+						<div class="home_content">
+							<div class="home_title">About us</div>
+							
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- About -->
+
+	<div class="about">
+		<div class="container about_container">
+			<div class="row">
+				<div class="col-lg-6">
+					<div class="about_content">
+						<div class="section_title_container">
+							<div class="section_title">About <span>RunTrack</span></div>
+						</div>
+		<div class="about_text">
+							<p>RunTrack is an online sporting platform created with the sole purpose of providing easier access for children, young people, and young adults to find sports events in their locality. Teams, trainers, and organizations will sign up and post upcoming events while other users will sign up to find the posted events.</p>
+		</div>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="about_background">
+			<div class="about_image"><img src="{{ asset('img/batbase.jpeg')}}" alt=""></div>
+		</div>
+	</div>
+
+	
+	<!-- Skills -->
+
+	<div class="skills">
+		<div class="container">
+			<div class="row row-lg-eq-height">
+				
+				<!-- Extra -->
+				<div class="col-lg-6">
+					<div class="extra d-flex flex-column align-items-center justify-content-center text-center">
+						<div class="background_image" style="background-image:url({{ asset('img/swimmer.jpeg')}})"></div>
+					</div>
+				</div>
+
+				<!-- Skills -->
+				<div class="col-lg-6 skills_col">
+					<div class="skills_content">
+						<div class="section_title_container">
+							<div class="section_title">We Love Fitness</div>
+						</div>
+						<div class="skills_text">
+							<p>We promote fitness among the people living in the poorer urban communities of London.</p>
+						</div>
+
+						<!-- Progress Bars -->
+						<ul class="progress_bar_container col_12 clearfix">
+							<li class="pb_item">
+								<div id="skill_1_pbar" class="skill_bars" data-perc="1.00" data-name="skill_1_pbar"></div>
+								<h5>Fitness</h5>
+
+							</li>
+                                                </ul>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block about %}
+{% endblock %}

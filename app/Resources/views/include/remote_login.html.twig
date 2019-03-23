@@ -1,0 +1,26 @@
+<div id="id03" class="modal">
+    <span onclick="document.getElementById('id03').style.display = 'none'" class="close" title="Close Modal">&times;</span>
+    <form class="modal-content">
+        <div class="container">
+            <h1>Login</h1>
+            <p>Welcome back!</p>
+            <hr>
+
+            <label for="email"><b>Email</b></label>
+            <input id="form_email" type="text" placeholder="Enter Email" name="email" required>
+
+            <label for="psw"><b>Password</b></label>
+            <input id="form_password" type="password" placeholder="Enter Password" name="psw" required>
+
+
+            <label>
+                <input id="form_remote_remember" type="checkbox" checked="checked" name="remote_remember_me" style="margin-bottom:15px"> Remember me
+            </label>
+
+            <div class="clearfix">
+                <button type="button" onclick="document.getElementById('id03').style.display = 'none';" class="cancelbtn">Cancel</button>
+                <button id = "login_btn_modal" type="button" class="signupbtn">Login</button>
+            </div>
+        </div>
+    </form>
+</div>

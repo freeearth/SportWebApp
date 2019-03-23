@@ -1,0 +1,42 @@
+{%if user_roles =="ROLE_ADMIN"%}
+    {% extends 'base.html.twig' %}
+    {% block title %}{{ title_l }}{% endblock %}
+    {% block body %}
+        <div>
+        <div class="container"> 
+            <div class="container">  
+                    <div class="s01">
+                        <div class="box">
+                            {{ form_start(form) }}
+                            {{ form_row(form.username) }}
+                            <br/>
+                            {{ form_row(form.email) }}
+                            <br/>
+                            {{ form_row(form.roles) }}
+                            <br/>
+                            {% if  form.plainPassword is defined %}
+                                {{ form_row(form.plainPassword.first) }}
+                                <br/>
+                                {{ form_row(form.plainPassword.second) }}
+                            {% endif %}
+                            <button type="submit">{{submit_name}}</button>
+                            {{ form_end(form) }}
+                            <br/>
+                            {{ form_errors(form) }}
+                            <ul>
+                                <li>
+                                    <a href="{{ path('admin_users_index') }}">Back to the list</a>
+                                </li>
+                            </ul>
+                        </div>  
+                    </div>
+
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+    {% block about %}
+    {% endblock %}
+    {% block gallery %}
+    {% endblock %}
+{% endif %}

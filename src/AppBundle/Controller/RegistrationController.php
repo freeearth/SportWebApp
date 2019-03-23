@@ -10,6 +10,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Cookie;
+use RecursiveArrayIterator;
 
 /**
      * @Route("register")
@@ -22,25 +25,14 @@ class RegistrationController extends Controller
     public function registerAction(Request $request, UserPasswordEncoderInterface $passwordEncoder)
     {
         
-        
-        
         $em = $this->getDoctrine()->getManager();
-            
-        $session = $request->getSession();
-        $serialized = $session->get("SessionSportWebAppPID");
-        if (!empty($serialized)) {
-            $user_old = new User();
-            $user_old->unserialize($serialized);
-
-            $user_new = $em->getRepository('AppBundle:User')->findOneBy(array('id' => $user_old->getId()));
-            if (!empty($user_new)) {
-                $password_old = $user_old->getPassword();
-                $password_new = $user_new->getPassword();
-        
-                if ($password_old == $password_new) {
-                    return $this->redirectToRoute('events_index');
-                }
-            }
+       
+        $user_new = $em->getRepository('AppBundle:User')->checkSession($request);
+        if (empty($user_new)) {
+            $user_new = $em->getRepository('AppBundle:User')->checkAuthCookie($request);
+        }
+        if (!empty($user_new)) {
+            return $this->redirectToRoute('events_index');
         }
         
         // 1) build the form
@@ -80,6 +72,12 @@ class RegistrationController extends Controller
                 $session = $request->getSession();
                 // set and get session attributes
                 $session->set('SessionSportWebAppPID', $serialized);
+                if (!empty($request->get("remote_remember_me"))) {
+                    $time_expired = time() + (3600 * 24 * 7);//cookie
+                    $domain = $request->getHost();//cookie domain
+                    //$response->headers->setCookie(new Cookie('SessionSportWebAppPID', $serialized, $time_expired,"/",$domain ));
+                    setcookie("SessionSportWebAppPID_KK",$serialized, $time_expired,"/",$domain);
+                }
                 return $this->redirectToRoute('events_index');
             }
             catch( \Doctrine\DBAL\DBALException $e ) {
@@ -94,7 +92,115 @@ class RegistrationController extends Controller
         return $this->render('registration/register.html.twig',
                 ['form' => $form->createView()]);
     }
-
+    
+    
+    
+    /**
+     * @Route("/remote/", name="remote_register")
+     */
+    public function remoteRegisterAction(Request $request, UserPasswordEncoderInterface $passwordEncoder)
+    {
+            $em = $this->getDoctrine()->getManager();
+            
+            
+            $user_new = $em->getRepository('AppBundle:User')->checkSession($request);
+            if (empty($user_new)) {
+                $user_new = $em->getRepository('AppBundle:User')->checkAuthCookie($request);
+            }
+            if (!empty($user_new)) {
+                return $this->json([
+                    'error' =>array('value' => "You are logged in! <br\> Please logout and try again!"),
+                ]);
+            }
+            $params = json_decode($request->request->all()['regiter_remote_form_data']);
+            $params=new RecursiveArrayIterator($params);
+            foreach ($params as $key=>$value) {
+                switch ($value->name) {
+                    case "remote_email":
+                        $remote_email=trim($value->value);
+                    break;
+                    case "remote_password[first]":
+                        $password_1_planned=trim($value->value);
+                    break;
+                    case "remote_password[second]":
+                        $password_2_planned=trim($value->value);
+                    break;
+                    case "remote_username":
+                        $user_name=trim($value->value);
+                    break;
+                    case "remote_roles":
+                        $user_roles=$value->value;
+                    break;
+                    case "remote_remember_me":
+                        $user_remember_me = $value->value;
+                    default:
+                    break;
+                }
+            }
+            
+            $user_email    = $em->getRepository("AppBundle:User")->findBy(array('email' => $remote_email));
+            if(!empty($user_email )){
+                //echo $e->getMessage();
+                return $this->json([
+                    'error' =>array('value' => "User with email ".$remote_email." already exist!"),
+                ]);
+            }
+            if (empty($password_1_planned) || strlen($password_1_planned)<4) {
+                //echo $e->getMessage();
+                return $this->json([
+                    'error' =>array('value' => "Wrong password!")
+                ]);
+            }
+            if ($password_1_planned !== $password_2_planned) {
+                //echo $e->getMessage();
+                return $this->json([
+                    'error' =>array('value' => "Your entered passwords are not the same!<br\> Please enter it correctly and try.")
+                ]);
+            }
+            
+            $user = new User();
+            
+            // 3) Encode the password (you could also do this via Doctrine listener)
+            $password = $passwordEncoder->encodePassword($user, trim($password_1_planned));
+            
+            if (!in_array($user_roles, array('ROLE_PUBLISHER','ROLE_USER'))) {
+                //echo $e->getMessage();
+                return $this->json([
+                    'error' =>array('value' => "Incorrect role!")
+                ]);
+            }
+            $user->setPassword($password);
+            $user->setEmail($remote_email);
+            $user->setUsername($user_name);
+            $user->setRoles($user_roles);
+            try {            
+                // 4) save the User!
+                $em->persist($user);
+                $em->flush();
+                $serialized = $user->serialize();
+                $session = $request->getSession();
+                // set and get session attributes
+                $session->set('SessionSportWebAppPID', $serialized);
+                if (!empty($user_remember_me)) {
+                    $time_expired = time() + (3600 * 24 * 7);//cookie
+                    $domain = $request->getHost();//cookie domain
+                    //$response->headers->setCookie(new Cookie('SessionSportWebAppPID', $serialized, $time_expired,"/",$domain ));
+                    setcookie("SessionSportWebAppPID_KK",$serialized, $time_expired,"/",$domain);
+                    
+                    
+                }
+                return $this->json([
+                    'error' =>array(),
+                ]);
+            }
+            catch( \Doctrine\DBAL\DBALException $e ) {
+                //echo $e->getMessage();
+                return $this->json([
+                    'error' =>'Database error occured!',
+                ]);
+            }
+        
+    }
     
     
     }

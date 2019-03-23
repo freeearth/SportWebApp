@@ -1,0 +1,39 @@
+<div id="id01" class="modal">
+<span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">&times;</span>
+    <form id="modal-register-form" class="modal-content">
+        <div class="container">
+          <h1>Sign Up</h1>
+          <p>Please fill in this form to create an account.</p>
+          <hr>
+          <label for="remote_username"><b>User Name</b></label>
+          <input type="text" placeholder="User Name" name="remote_username" required>
+
+          <label for="remote_email"><b>Email</b></label>
+          <input type="text" placeholder="Enter Email" name="remote_email" required>
+
+          <label><b>User role</b></label>
+          <select id="user_roles" name="remote_roles">
+              <option value="ROLE_PUBLISHER">publusher</option>
+              <option value="ROLE_USER">viewer</option>
+          </select>
+          <br/><br/>
+
+          <label for="remote_password[first]"><b>Password</b></label>
+          <input type="password" placeholder="Enter Password" name="remote_password[first]" required>
+
+          <label for="remote_password[second]"><b>Repeat Password</b></label>
+          <input type="password" placeholder="Repeat Password" name="remote_password[second]" required>
+
+          <label>
+            <input type="checkbox" checked="checked" name="remote_remember_me" style="margin-bottom:15px"> Remember me
+          </label>
+
+          <p>By creating an account you agree to our <a href="#" style="color:dodgerblue">Terms & Privacy</a>.</p>
+
+          <div class="clearfix">
+            <button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">Cancel</button>
+            <button id="remote_register_btn" type="button" class="signupbtn">Sign Up</button>
+          </div>
+      </div>
+    </form>
+</div>

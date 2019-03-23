@@ -3,32 +3,55 @@
 {% block title %}Register page{% endblock %}
 
 {% block body %}
-    {{ form_start(form) }}
-        {{ form_row(form.username) }}
-        {{ form_row(form.email) }}
-        {{ form_row(form.roles) }}
-        {{ form_row(form.plainPassword.first) }}
-        {{ form_row(form.plainPassword.second) }}
-        <button type="submit">Register</button>
-    {{ form_end(form) }}
-    <br />
-    Also, if you have an account, you can:
-    <ul>
-        <li>
-            <a href="{{ path('login') }}">Sign in</a>
-        </li>
-    </ul>
-    {{ form_errors(form) }}
+    <div class="container"> 
+            <div class="home">
+                <div class="container">  
+                    <div class="s01">
+                            <div class="inner-form">
+
+                                {{ form_start(form) }}
+                                    {{ form_row(form.username) }}
+                                    {{ form_row(form.email) }}
+                                    {{ form_row(form.roles) }}
+                                    {{ form_row(form.plainPassword.first) }}
+                                    {{ form_row(form.plainPassword.second) }}
+                                    <label>
+                                        <input type="checkbox" checked="checked" name="remote_remember_me" style="margin-bottom:15px"> Remember me
+                                    </label>
+                                    <button type="submit">Register</button>
+                                {{ form_end(form) }}
+                            </div>  
+
+                        </div>
+                    </div>
+
+            </div>
+        </div>
+    
+    
 {% endblock %}
 
 {% block form_errors %}
-    {% spaceless %}
-        {% if errors|length > 0 %}
-        <ul>
-            {% for error in errors %}
-                <li>{{ error.message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-    {% endspaceless %}
+    <div class="home">
+        <div class="home_container">
+            <div class="container">  
+                <div class="row">
+                    <div class="col">
+                        {% spaceless %}
+                            {% if errors|length > 0 %}
+                            <ul>
+                                {% for error in errors %}
+                                    <li>{{ error.message }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        {% endspaceless %}
+                        {{ form_errors(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
 {% endblock form_errors %}
+                    

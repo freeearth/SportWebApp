@@ -8,16 +8,73 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class DefaultController extends Controller
 {
-    /**
-     * @Route("/", name="homepage")
+  /**
+     * About us page.
+     *
+     * @Route("about", name="about_us", methods={"GET","HEAD"})
      */
-    public function indexAction(Request $request)
-    {
-        return $this->redirectToRoute('events_index');
-        // replace this example code with whatever you need
-        //return $this->render('default/index.html.twig', [
-            //'base_dir' => realpath($this->getParameter('kernel.project_dir')).DIRECTORY_SEPARATOR,
-        //]);
+    public function aboutAction(Request $request)
+    { 
+        $em = $this->getDoctrine()->getManager();
+        $user_new = $em->getRepository('AppBundle:User')->checkSession($request);
+        if (empty($user_new)) {
+            $user_new = $em->getRepository('AppBundle:User')->checkAuthCookie($request);
+        }
+        $username = "";
+        if (!empty($user_new)) {
+            $username = $user_new->getUsername();
+        }
+        return $this->render('default/about.html.twig',
+                array(
+                    "page_title"=>"About Us",
+                    "username"=>$username
+                    ));   
+    } 
+    
+    /**
+     * Services page.
+     *
+     * @Route("services", name="services", methods={"GET","HEAD"})
+     */
+    public function servicesAction(Request $request)
+    { 
+        $em = $this->getDoctrine()->getManager();
+        $user_new = $em->getRepository('AppBundle:User')->checkSession($request);
+        if (empty($user_new)) {
+            $user_new = $em->getRepository('AppBundle:User')->checkAuthCookie($request);
+        }
+        $username = "";
+        if (!empty($user_new)) {
+            $username = $user_new->getUsername();
+        }
+        return $this->render('default/services.html.twig',
+                array(
+                    "page_title"=>"Services",
+                    "username"=>$username
+                    ));   
+    } 
+    
+    /**
+     * Contacts page.
+     *
+     * @Route("contacts", name="contacts", methods={"GET","HEAD"})
+     */
+    public function contactsAction(Request $request)
+    { 
+        $em = $this->getDoctrine()->getManager();
+        $user_new = $em->getRepository('AppBundle:User')->checkSession($request);
+        if (empty($user_new)) {
+            $user_new = $em->getRepository('AppBundle:User')->checkAuthCookie($request);
+        }
+        $username = "";
+        if (!empty($user_new)) {
+            $username = $user_new->getUsername();
+        }
+        return $this->render('default/contacts.html.twig',
+                array(
+                    "page_title"=>"Contacts",
+                    "username"=>$username
+                    ));   
     }
     
 }

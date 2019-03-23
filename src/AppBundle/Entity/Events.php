@@ -53,6 +53,7 @@ class Events
         #$this->roles = ['ROLE_USER'];
         $this->evCreatedDatetime= new \DateTime();
         $this->evChangedDatetime= new \DateTime();
+        $this->evLocation= "";
     }
     
     /**
@@ -62,6 +63,13 @@ class Events
      */
     private $evPlannedDatetime;
     
+    
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="ev_location", type="text")
+     */
+    private $evLocation;
     
     /**
      * @var int
@@ -128,7 +136,35 @@ class Events
     {
         return $this->evDescription;
     }
+    
+    
+    
+    /**
+     * Set evLocation
+     *
+     * @param string $evLocation
+     *
+     * @return Events
+     */
+    public function setEvLocation($evLocation)
+    {
+        $this->evLocation = $evLocation;
 
+        return $this;
+    }
+
+    /**
+     * Get evLocation
+     *
+     * @return string
+     */
+    public function getEvLocation()
+    {
+        return $this->evLocation;
+    }
+    
+    
+    
     /**
      * Set evCreatedDatetime
      *

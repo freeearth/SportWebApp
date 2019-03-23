@@ -61,6 +61,7 @@
                                                         <div class="box_title">{{ event.evName }}</div>
                                                         <div class="box_text">
                                                                 <p>{{event.evDescription}}</p>
+                                                                <p>{{event.evLocation}}</p>
                                                                 <p>{% if event.evPlannedDatetime %}{{ event.evPlannedDatetime|date('Y-m-d H:i:s') }}{% endif %}</p>
                                                                 <ul>
                                                                     <li>
@@ -136,22 +137,50 @@
               }
               response( availableTags);
               if ($("#search").val() === "") {
-                getEventsRemote("");
+                getEventsRemote(["",$("#location").val()]);
               }
           }
           
         } );
       },
         select: function( event, ui ) {
-            getEventsRemote(ui.item.value);
+            getEventsRemote([ui.item.value,$("#location").val()]);
       }
       });
-        $(".search-events-btn").on("click",function () {
-            getEventsRemote($("#search").val())
+      
+      $( "#location" ).autocomplete({
+    minLength: 0,
+    source: function( request, response ) {
+        $.ajax( {
+          url: "{{ path('events_find_locations')}}",
+          //dataType: "jsonp",
+          type: "post",
+          data: "ev_location="+encodeURIComponent(JSON.stringify($("#location").val())),
+          success: function( names_array ) {
+              availableTags = [];
+              availableTags_parsed = JSON.parse(names_array);
+              for (var prop in availableTags_parsed) {
+                  availableTags.push(availableTags_parsed[prop]);
+              }
+              response( availableTags);
+              if ($("#location").val() === "") {
+                getEventsRemote([$("#search").val(),""]);
+              }
+          }
+          
+        } );
+      },
+        select: function( event, ui ) {
+            getEventsRemote([$("#search").val(),ui.item.value]);
+      }
+      });
+        
+    $(".search-events-btn").on("click",function () {
+            getEventsRemote([$("#search").val(), $("#location").val()])
         });
       function getEventsRemote (val) {
         $.ajax({
-            data: "ev_name="+encodeURIComponent(JSON.stringify(val)),
+            data: "ev_name="+encodeURIComponent(JSON.stringify(val[0]))+"&ev_location="+encodeURIComponent(JSON.stringify(val[1])),
             url:"{{ path('events_find_all_names')}}",
             //contentType:"application/json;charset=UTF-8",
             type: "post",
@@ -162,6 +191,7 @@
                 var event_name = [];
                 var event_planned_datetime = [];
                 var event_description = [];
+                var event_locations = [];
                 
                 
                 for (var prop in results_finding) {
@@ -172,6 +202,10 @@
                         //let formatted_date = current_datetime.getFullYear() + "-" + (current_datetime.getMonth() + 1) + "-" + current_datetime.getDate() + " " + current_datetime.getHours() + ":" + current_datetime.getMinutes() ; 
                         event_planned_datetime.push(current_datetime.toLocaleString());
                         event_description.push(results_finding[prop][prop_1].evDescription);
+                        if (results_finding[prop][prop_1].evLocation == null) {
+                            results_finding[prop][prop_1].evLocation = "";
+                        }
+                        event_locations.push(results_finding[prop][prop_1].evLocation);
                     }
                 }
                 $(".events_all").empty();
@@ -193,7 +227,8 @@
                                                 <div class='box_text'>\n\
                                                     <p>"+event_description[i]+"</p>\n\
                                                         <p>"+event_planned_datetime[i]+"</p>\n\
-                                                    <ul><li><a href='{{ app.request.uri}}"+id[i]+"'>show</a></li></ul>\n\
+\n\                                                     <p>"+event_locations[i]+"</p>\n\
+                                                    <ul><li><a href='{{ show_route_path}}"+id[i]+"'>show</a></li></ul>\n\
                                                 </div>\n\
                                         </div>");
                         {% endif %}
@@ -203,9 +238,10 @@
                                                 <div class='box_title'>"+event_name[i]+"</div>\n\
                                                 <div class='box_text'>\n\
                                                     <p>"+event_description[i]+"</p>\n\
+\n\                                                 <p>"+event_locations[i]+"</p>\n\
                                                         <p>"+event_planned_datetime[i]+"</p>\n\
                                                         <ul>\n\
-                                                            <li><a href='{{ app.request.uri}}"+id[i]+"'>show</a></li>\n\
+                                                            <li><a href='{{ show_route_path}}"+id[i]+"'>show</a></li>\n\
                                                             <li><a href='{{ edit_route_path}}/"+id[i]+"'>edit</a></li>\n\
                                                             <li><a href='{{ delete_route_path}}/"+id[i]+"' onclick='return ConfirmDeliting(this);'>delete</a></li>\n\
                                                         </ul>\n\

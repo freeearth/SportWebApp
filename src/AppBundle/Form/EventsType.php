@@ -20,6 +20,7 @@ class EventsType extends AbstractType
         $builder
                 ->add('evName', TextType::class, ['label' => 'Event name'])
                 ->add('evDescription', TextareaType::class, ['label' => 'Event description'])
+                ->add('evLocation', TextareaType::class, ['label' => 'Event location'])
                 ->add('evPlannedDatetime', DateTimeType::class, [
                     //'widget' => 'single_text',
                     // this is actually the default format for single_text

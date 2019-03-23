@@ -1,0 +1,55 @@
+{%if user_roles =="ROLE_ADMIN"%}
+    {%block header_buttons%}
+        <button onclick="window.location.href = '{{ path('user_admin_creation') }}';" style="width:auto;color:blueviolet;">Create new user</button>
+    {% endblock %}
+    {% extends 'base.html.twig' %}
+    {% block title %}User description{% endblock %}
+    {% block body %}
+        <div class="container"> 
+            <div class="home">
+                <div class="container">  
+                    <div class="s01">
+                        <div class="inner-form">
+                            <h1>{{user.email}}</h1>
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <th>Username</th>
+                                        <td>{{ user.username }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>User email</th>
+                                        <td>{{ user.email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>User role</th>
+                                        <td>{{ user.roles }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>User password</th>
+                                        <td>{{ user.password }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>User registered datetime</th>
+                                        <td>{{ user.datetimeRegister|date('Y-m-d H:i:s') }}</td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+
+                            <ul>
+                                <li>
+                                    <a href="{{ path('admin_users_index') }}">Back to the list</a>
+                                </li>
+                            </ul>
+                        </div>  
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+    {% block about %}
+    {% endblock %}
+    {% block gallery %}
+    {% endblock %}
+{% endif %}

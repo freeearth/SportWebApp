@@ -38,11 +38,32 @@ class UserRepository extends \Doctrine\ORM\EntityRepository
                     return $user_new;
                 }
                 else {
+                    $session->clear();
                     $user_new = null;
                     return null;
                 }
             }
         }
+        $session->remove("SessionSportWebAppPID","");
         return $user_new;
+    }
+    
+    
+    /**
+     * Check current user auth cookie
+     * @return User object or null
+     */
+    public function checkAuthCookie(Request $request) {
+        $auth_cookie = $request->cookies->get('SessionSportWebAppPID_KK');
+        if (!empty($auth_cookie )) {
+            $session = $request->getSession();
+            // set and get session attributes
+            $session->set('SessionSportWebAppPID', $auth_cookie);
+            $user_new = $this->checkSession($request);
+            return $user_new;
+        }
+        else {
+            return null;
+        }
     }
 }

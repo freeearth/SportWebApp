@@ -10,7 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Form\FormError;
-use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Response;
 
 
 //use Symfony\Component\Security\Core\User;
@@ -29,83 +29,84 @@ class SecurityController extends Controller
      */
     public function loginAction(UserPasswordEncoderInterface $passwordEncoder, Request $request)
     {   
-        
-        $em = $this->getDoctrine()->getManager();
-            
-        $session = $request->getSession();
-        $serialized = $session->get("SessionSportWebAppPID");
-        if (!empty($serialized)) {
-            $user_old = new User();
-            $user_old->unserialize($serialized);
+        $em= $this->getDoctrine()->getManager();
+        $user = $em->getRepository('AppBundle:User')->checkSession($request);
+        if (empty($user)) {
+            $user = $em->getRepository('AppBundle:User')->checkAuthCookie($request);
+        }
+        if (empty($user)) {
+            $form = $this->createFormBuilder()
+            ->add('email', EmailType::class)
+            ->add('password', PasswordType::class)
+            ->getForm();
+            // 2) handle the submit (will only happen on POST)
+            $form->handleRequest($request);
+            $errors = $form->getErrors();
+            if ($form->isSubmitted() && $form->isValid()) {
+                $email = $form->get('email')->getData();
+                $user  = $em->getRepository("AppBundle:User")->findOneBy(array('email' => $email));
+                if (empty($user)) {
+                    $error = new FormError("There is no user with email".$email."!");
+                    $form->addError($error);
+                    return $this->render('security/login.html.twig',
+                    ['form' => $form->createView()]);
+                }
 
-            $user_new = $em->getRepository('AppBundle:User')->findOneBy(array('id' => $user_old->getId()));
-            if (!empty($user_new)) {
-                $password_old = $user_old->getPassword();
-                $password_new = $user_new->getPassword();
-        
-                if ($password_old == $password_new) {
-                    return $this->redirectToRoute('events_index');
+                /*
+                $defaultEncoder = new MessageDigestPasswordEncoder('sha512', true, 5000);
+                $weakEncoder = new MessageDigestPasswordEncoder('md5', true, 1);
+
+                $encoders = [
+                    User::class       => $defaultEncoder,
+                    LegacyUser::class => $weakEncoder,
+                    // ...
+                ];
+                $encoderFactory = new EncoderFactory($encoders);
+                $encoder = $encoderFactory->getEncoder($user);
+
+                // returns $weakEncoder (see above)
+                $encodedPassword = $encoder->encodePassword($plainPassword, $user->getSalt());
+
+                 * 
+                 * 
+                 * 
+                 *              */
+                
+            
+                $password = $form->get("password")->getData();
+                $validPassword = $passwordEncoder->isPasswordValid($user, $password);
+                if ($validPassword == true) {
+                    $serialized = $user->serialize();
+                    $session = $request->getSession();
+                    // set and get session attributes
+                    $session->set('SessionSportWebAppPID', $serialized);
+                    if (!empty($request->get("remote_remember_me"))) {
+                        $time_expired = time() + (3600 * 24 * 7);//cookie
+                        $domain = $request->getHost();//cookie domain
+                        //$response->headers->setCookie(new Cookie('SessionSportWebAppPID', $serialized, $time_expired,"/",$domain ));
+                        setcookie("SessionSportWebAppPID_KK",$serialized, $time_expired,"/",$domain);
+                    }
+                    $user_role = $user -> getRoles();
+                    if ($user_role == "ROLE_ADMIN"){
+                        return $this->redirectToRoute('admin_users_index');
+                    }
+                    else {
+                        return $this->redirectToRoute('events_index');
+                    }
+                }
+                else {
+                    $error = new FormError("Wrong password!");
+                    $form->addError($error);
+                    return $this->render('security/login.html.twig',
+                    ['form' => $form->createView()]);
                 }
             }
+            return $this->render('security/login.html.twig',
+                    ['form' => $form->createView()]);
         }
-        
-        
-        $form = $this->createFormBuilder()
-        ->add('email', EmailType::class)
-        ->add('password', PasswordType::class)
-        ->getForm();
-        
-        // 2) handle the submit (will only happen on POST)
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em= $this->getDoctrine()->getManager();
-            $email = $form->get('email')->getData();
-            $user  = $em->getRepository("AppBundle:User")->findOneBy(array('email' => $email));
-            if (empty($user)) {
-                $error = new FormError("There is no user with email".$email."!");
-                $form->addError($error);
-                return $this->render('security/login.html.twig',
-                ['form' => $form->createView()]);
-            }
-            
-            /*
-            $defaultEncoder = new MessageDigestPasswordEncoder('sha512', true, 5000);
-            $weakEncoder = new MessageDigestPasswordEncoder('md5', true, 1);
-
-            $encoders = [
-                User::class       => $defaultEncoder,
-                LegacyUser::class => $weakEncoder,
-                // ...
-            ];
-            $encoderFactory = new EncoderFactory($encoders);
-            $encoder = $encoderFactory->getEncoder($user);
-
-            // returns $weakEncoder (see above)
-            $encodedPassword = $encoder->encodePassword($plainPassword, $user->getSalt());
-    
-             * 
-             * 
-             * 
-             *              */
-            
-            $password = $form->get("password")->getData();
-            $validPassword = $passwordEncoder->isPasswordValid($user, $password);
-            if ($validPassword == true) {
-                $serialized = $user->serialize();
-                $session = $request->getSession();
-                // set and get session attributes
-                $session->set('SessionSportWebAppPID', $serialized);
-                return $this->redirectToRoute('events_index');
-            }
-            else {
-                $error = new FormError("Wrong password!");
-                $form->addError($error);
-                return $this->render('security/login.html.twig',
-                ['form' => $form->createView()]);
-            }
+        else {
+            return $this->redirectToRoute("events_index");
         }
-        return $this->render('security/login.html.twig',
-                ['form' => $form->createView()]);
     }
     
     
@@ -116,6 +117,9 @@ class SecurityController extends Controller
     {   
         $session = $request->getSession();
         $session->clear();
+        $response = new Response();
+        $response->headers->clearCookie('SessionSportWebAppPID_KK');
+        $response->send();
         return $this->redirectToRoute('login');
     }    
     
@@ -124,29 +128,45 @@ class SecurityController extends Controller
      */
     public function remoteLoginAction(UserPasswordEncoderInterface $passwordEncoder, Request $request) {
         $em = $this->getDoctrine()->getManager();
-        $email  = $request->request->get('log');
-        $user  = $em->getRepository("AppBundle:User")->findOneBy(array('email' => json_decode($email)));
+        $user = $em->getRepository('AppBundle:User')->checkSession($request);
         if (empty($user)) {
-            return $this->json([
-                'error' =>array('value' => "There is no user with email ".$email."!"),
-            ]);
+            $user = $em->getRepository('AppBundle:User')->checkAuthCookie($request);
         }
-        $password= $request->request->get('pas');
-        $validPassword = $passwordEncoder->isPasswordValid($user, json_decode($password));
-        if ($validPassword == true) {
-            $serialized = $user->serialize();
-            $session = $request->getSession();
-            // set and get session attributes
-            $session->set('SessionSportWebAppPID', $serialized);
-            return $this->json([
-                'error' =>array(),
-                'SessionSportWebAppPID' => $serialized,
-            ]);
+        if (empty($user)) {
+            $email  = $request->request->get('log');
+            $user  = $em->getRepository("AppBundle:User")->findOneBy(array('email' => json_decode($email)));
+            if (empty($user)) {
+                return $this->json([
+                    'error' =>array('value' => "There is no user with email ".$email."!"),
+                ]);
+            }
+            $password= $request->request->get('pas');
+            $validPassword = $passwordEncoder->isPasswordValid($user, json_decode($password));
+            if ($validPassword == true) {
+                $serialized = $user->serialize();
+                $session = $request->getSession();
+                // set and get session attributes
+                $session->set('SessionSportWebAppPID', $serialized);
+                if (!empty($request->get("remote_remember_me"))) {
+                    $time_expired = time() + (3600 * 24 * 7);//cookie
+                    $domain = $request->getHost();//cookie domain
+                    //$response->headers->setCookie(new Cookie('SessionSportWebAppPID', $serialized, $time_expired,"/",$domain ));
+                    setcookie("SessionSportWebAppPID_KK",$serialized, $time_expired,"/",$domain);
+                }
+                return $this->json([
+                    'error' =>array(),
+                ]);
+            }
+            else {
+                return $this->json([
+                    'error' =>array('value' => "Wrong password!"),
+                ]);
+            }
         }
         else {
             return $this->json([
-                'error' =>array('value' => "Wrong password!"),
-            ]);
+                    'error' =>array('value' => "You are logged in!"),
+                ]);
         }
     }
 
