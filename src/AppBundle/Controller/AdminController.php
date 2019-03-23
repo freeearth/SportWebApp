@@ -25,7 +25,7 @@ class AdminController extends Controller
      */
     public function adminusersAction(Request $request)
     { 
-        $em = $this->getDoctrine()->getManager();
+    	$em = $this->getDoctrine()->getManager();
         $user_new = $em->getRepository('AppBundle:User')->checkSession($request);
         if (empty($user_new)) {
             $user_new = $em->getRepository('AppBundle:User')->checkAuthCookie($request);
@@ -35,7 +35,7 @@ class AdminController extends Controller
             
             if (!empty($user_new) && $user_role == 'ROLE_ADMIN') {
                 $users = $em->getRepository('AppBundle:User')->findAll();
-                // set and get session attributes
+            // set and get session attributes
                 return $this->render('admin/users.html.twig', array(
                     'users' => $users,
                     'username' => $user_new->getUsername(),
@@ -45,10 +45,11 @@ class AdminController extends Controller
                     'edit_route_path' => "users/update"//hardcode
                 ));
             }
+	    return $this->redirectToRoute('events_index');
         }
         else {
             return $this->redirectToRoute('events_index');
-        }   
+        }
     } 
     
     
@@ -75,6 +76,7 @@ class AdminController extends Controller
                             
                 ));
             }
+	    return $this->redirectToRoute('events_index');
         }
         else {
             return $this->redirectToRoute('events_index');
@@ -136,6 +138,7 @@ class AdminController extends Controller
                             ]);
 
             }
+	    return $this->redirectToRoute('events_index');
         }
         else {
              return $this->redirectToRoute('events_index');
@@ -204,6 +207,7 @@ class AdminController extends Controller
                             ]);
 
             }
+	    return $this->redirectToRoute('events_index');
         }
         else {
             return $this->redirectToRoute('events_index');
@@ -248,6 +252,7 @@ class AdminController extends Controller
                         }
                     }
             }
+	    return $this->redirectToRoute('events_index');
         }
         else {
             return $this->redirectToRoute('events_index');
